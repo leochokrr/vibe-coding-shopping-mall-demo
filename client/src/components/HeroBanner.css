@@ -1,0 +1,216 @@
+/* Hero Banner */
+.hero-banner {
+  position: relative;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 4rem;
+  transition: background 0.5s ease-in-out;
+}
+
+.hero-content {
+  text-align: center;
+  z-index: 2;
+  position: relative;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.hero-title {
+  color: white;
+  font-size: 5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hero-title-line1 {
+  font-size: 4rem;
+}
+
+.hero-title-line2 {
+  font-size: 6rem;
+  position: relative;
+}
+
+.hero-subtitle {
+  color: white;
+  font-size: 1.2rem;
+  margin-top: 1.5rem;
+  font-weight: 400;
+}
+
+.hero-decorations {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.wine-glass {
+  position: absolute;
+  width: 200px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.wine-glass.left {
+  left: -100px;
+}
+
+.wine-glass.right {
+  right: -100px;
+}
+
+/* Circle Decoration (아자아자 배너) */
+.hero-decorations.circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle-decoration {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-1 {
+  width: 150px;
+  height: 150px;
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.circle-2 {
+  width: 100px;
+  height: 100px;
+  top: 60%;
+  right: 15%;
+  animation-delay: 2s;
+}
+
+.circle-3 {
+  width: 80px;
+  height: 80px;
+  bottom: 20%;
+  left: 20%;
+  animation-delay: 4s;
+}
+
+/* Star Decoration (2026년은 나의 해 배너) */
+.hero-decorations.star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-decoration {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 3rem;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.star-1 {
+  top: 15%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.star-2 {
+  top: 25%;
+  right: 20%;
+  animation-delay: 0.5s;
+  font-size: 2.5rem;
+}
+
+.star-3 {
+  bottom: 30%;
+  left: 25%;
+  animation-delay: 1s;
+  font-size: 2rem;
+}
+
+.star-4 {
+  bottom: 20%;
+  right: 15%;
+  animation-delay: 1.5s;
+  font-size: 2.8rem;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+    opacity: 0.25;
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 3rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 3;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+}
+
+.carousel-arrow:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.carousel-arrow span {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+  margin-top: -5px;
+}
+
+.carousel-arrow.left-arrow {
+  left: 2rem;
+}
+
+.carousel-arrow.right-arrow {
+  right: 2rem;
+}
+

@@ -1,0 +1,35 @@
+export const API_ENDPOINTS = {
+  HEALTH: '/api/health',
+  TEST: '/api/test',
+  USERS: '/api/users',
+  PRODUCTS: '/api/products',
+  ORDERS: '/api/orders',
+  ORDER_STATISTICS: '/api/orders/statistics',
+  CART: '/api/cart',
+  LOGIN: '/api/auth/login',
+  AUTH_ME: '/api/auth/me',
+  FORGOT_PASSWORD: '/api/auth/forgot-password',
+  RESET_PASSWORD: '/api/auth/reset-password',
+  APPLE_LOGIN: '/api/auth/social/apple',
+};
+
+export const ROUTES = {
+  HOME: '/',
+  ABOUT: '/about',
+  SIGNUP: '/signup',
+  LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password',
+  ADMIN: '/admin',
+  PRODUCT_REGISTER: '/admin/products/register',
+  PRODUCT_MANAGE: '/admin/products/manage',
+  PRODUCT_DETAIL: '/products/:id',
+  PRODUCT_DETAIL_BY_ID: (id) => `/products/${id}`,
+  CART: '/cart',
+  CHECKOUT: '/checkout',
+  ORDER_SUCCESS: '/order/success',
+  ORDER_FAILURE: '/order/failure',
+  ORDERS: '/orders',
+  ORDER_DETAIL: (id) => `/orders/${id}`,
+  WISHLIST: '/wishlist',
+};
+
