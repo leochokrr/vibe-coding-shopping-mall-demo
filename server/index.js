@@ -5,6 +5,23 @@ const morgan = require('morgan');
 const session = require('express-session');
 require('dotenv').config();
 
+// 필수 환경변수 확인
+const requiredEnvVars = ['JWT_SECRET', 'SESSION_SECRET', 'MONGODB_ATLAS_URL'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('='.repeat(50));
+  console.error('⚠️  필수 환경변수가 설정되지 않았습니다!');
+  console.error('누락된 환경변수:', missingEnvVars.join(', '));
+  console.error('='.repeat(50));
+  console.error('Heroku 대시보드 → Settings → Config Vars에서 설정해주세요.');
+  console.error('='.repeat(50));
+  // 프로덕션에서는 종료, 개발 환경에서는 경고만
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
 // Passport 설정
 const passport = require('./config/passport');
 
@@ -141,12 +158,16 @@ const connectDB = async () => {
     }
     
     console.error('='.repeat(50));
-    process.exit(1);
+    console.error('\n⚠️  경고: MongoDB 연결에 실패했지만 서버는 계속 실행됩니다.');
+    console.error('⚠️  데이터베이스 작업은 실패할 수 있습니다.\n');
+    // process.exit(1); // 주석 처리하여 서버가 계속 실행되도록 함 (디버깅용)
   }
 };
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB (비동기로 실행, 서버 시작을 막지 않음)
+connectDB().catch(err => {
+  console.error('MongoDB 연결 중 예상치 못한 오류:', err);
+});
 
 // Routes
 app.get('/', (req, res) => {
