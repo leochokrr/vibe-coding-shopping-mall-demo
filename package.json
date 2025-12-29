@@ -1,0 +1,15 @@
+{
+  "name": "shopping-mall-demo",
+  "version": "1.0.0",
+  "description": "Shopping Mall Demo - Full Stack Application",
+  "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "scripts": {
+    "start": "cd server && node index.js",
+    "postinstall": "cd server && npm install"
+  }
+}
+
