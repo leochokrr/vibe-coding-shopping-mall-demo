@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 require('dotenv').config();
 
-// 필수 환경변수 확인
+// 필수 환경변수 확인 (경고만 표시, 서버는 계속 실행)
 const requiredEnvVars = ['JWT_SECRET', 'SESSION_SECRET', 'MONGODB_ATLAS_URL'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
@@ -16,10 +16,10 @@ if (missingEnvVars.length > 0) {
   console.error('='.repeat(50));
   console.error('Heroku 대시보드 → Settings → Config Vars에서 설정해주세요.');
   console.error('='.repeat(50));
-  // 프로덕션에서는 종료, 개발 환경에서는 경고만
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
+  console.error('⚠️  경고: 일부 기능이 정상적으로 작동하지 않을 수 있습니다.');
+  console.error('⚠️  서버는 계속 실행되지만 환경변수를 설정하는 것을 강력히 권장합니다.');
+  console.error('='.repeat(50));
+  // 서버 종료하지 않음 - 환경변수가 없어도 서버는 시작되도록 함
 }
 
 // Passport 설정
@@ -45,22 +45,36 @@ app.use(cors({
       'http://127.0.0.1:5173'
     ].filter(Boolean); // undefined 제거
     
-    // Vercel 도메인 패턴 체크 (예: *.vercel.app)
-    if (origin && process.env.FRONTEND_URL) {
-      const frontendUrl = new URL(process.env.FRONTEND_URL);
-      const originUrl = new URL(origin);
-      
-      // 같은 도메인 또는 서브도메인 허용
-      if (originUrl.hostname === frontendUrl.hostname || 
-          originUrl.hostname.endsWith('.' + frontendUrl.hostname)) {
-        return callback(null, true);
+    // Vercel 도메인 패턴 체크 (모든 *.vercel.app 도메인 허용)
+    if (origin) {
+      try {
+        const originUrl = new URL(origin);
+        // 모든 Vercel 도메인 허용 (*.vercel.app)
+        if (originUrl.hostname.endsWith('.vercel.app')) {
+          console.log(`✓ CORS allowed: ${origin} (Vercel domain)`);
+          return callback(null, true);
+        }
+        
+        // FRONTEND_URL이 설정되어 있으면 해당 도메인도 체크
+        if (process.env.FRONTEND_URL) {
+          const frontendUrl = new URL(process.env.FRONTEND_URL);
+          // 같은 도메인 또는 서브도메인 허용
+          if (originUrl.hostname === frontendUrl.hostname || 
+              originUrl.hostname.endsWith('.' + frontendUrl.hostname)) {
+            console.log(`✓ CORS allowed: ${origin} (FRONTEND_URL match)`);
+            return callback(null, true);
+          }
+        }
+      } catch (err) {
+        console.warn(`Invalid origin URL: ${origin}`, err);
       }
     }
     
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log(`✓ CORS allowed: ${origin} (allowedOrigins)`);
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
+      console.warn(`✗ CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
