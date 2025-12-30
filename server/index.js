@@ -130,8 +130,12 @@ const connectDB = async () => {
     console.log(`Connecting to MongoDB ${isAtlas ? 'Atlas' : 'Local'}...`);
     
     const conn = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 10000, // 10초 타임아웃
+      serverSelectionTimeoutMS: 30000, // 30초 타임아웃 (Atlas 연결에 더 많은 시간 필요)
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000, // 연결 타임아웃
+      maxPoolSize: 10, // 연결 풀 크기
+      retryWrites: true,
+      w: 'majority'
     });
     
     console.log('✓ MongoDB Connected Successfully!');

@@ -1,8 +1,35 @@
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
+
+// MongoDB 연결 상태 확인 헬퍼 함수
+const checkDatabaseConnection = () => {
+  const connectionState = mongoose.connection.readyState;
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  if (connectionState !== 1) {
+    const states = {
+      0: 'Disconnected',
+      1: 'Connected',
+      2: 'Connecting',
+      3: 'Disconnecting'
+    };
+    throw new Error(`Database is not connected. Current state: ${states[connectionState] || 'Unknown'}`);
+  }
+};
 
 // Get all products
 exports.getAll = async (req, res) => {
   try {
+    // MongoDB 연결 상태 확인
+    try {
+      checkDatabaseConnection();
+    } catch (dbError) {
+      console.error('⚠️  데이터베이스 연결 확인 실패:', dbError.message);
+      return res.status(503).json({
+        message: 'Database connection error. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+      });
+    }
+
     // 쿼리 파라미터로 필터링 및 페이지네이션 지원
     const { category, search, page = 1, limit = 2 } = req.query;
     let query = {};
@@ -49,8 +76,32 @@ exports.getAll = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('상품 목록 조회 에러:', error);
-    res.status(500).json({ message: error.message });
+    console.error('='.repeat(50));
+    console.error('상품 목록 조회 에러:');
+    console.error('에러 타입:', error.name);
+    console.error('에러 메시지:', error.message);
+    console.error('='.repeat(50));
+    
+    // MongoDB 연결 타임아웃 에러
+    if (error.message && error.message.includes('buffering timed out')) {
+      return res.status(503).json({
+        message: 'Database connection timeout. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+    
+    // MongoDB 연결 에러
+    if (error.name === 'MongoServerSelectionError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        message: 'Database connection error. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+    
+    res.status(500).json({
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
