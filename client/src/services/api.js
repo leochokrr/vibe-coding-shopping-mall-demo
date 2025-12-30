@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// baseURL 끝의 슬래시 제거 (이중 슬래시 방지)
+API_URL = API_URL.replace(/\/+$/, '');
 
 // 개발 환경에서 API URL 로그 출력
 if (import.meta.env.DEV) {
@@ -23,9 +26,22 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
+    // URL 정규화 (이중 슬래시 방지)
+    if (config.url) {
+      // baseURL 끝의 슬래시 제거
+      if (config.baseURL) {
+        config.baseURL = config.baseURL.replace(/\/+$/, '');
+      }
+      // url이 /로 시작하지 않으면 추가
+      if (!config.url.startsWith('/')) {
+        config.url = '/' + config.url;
+      }
+    }
+    
     // 개발 환경에서 요청 URL 로그 출력
     if (import.meta.env.DEV) {
-      console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+      const fullUrl = config.baseURL ? `${config.baseURL}${config.url}` : config.url;
+      console.log(`API Request: ${config.method?.toUpperCase()} ${fullUrl}`);
     }
     
     return config;
