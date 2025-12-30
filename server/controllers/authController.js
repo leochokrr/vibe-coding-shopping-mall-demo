@@ -1,6 +1,22 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
+// MongoDB 연결 상태 확인 헬퍼 함수
+const checkDatabaseConnection = () => {
+  const connectionState = mongoose.connection.readyState;
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  if (connectionState !== 1) {
+    const states = {
+      0: 'Disconnected',
+      1: 'Connected',
+      2: 'Connecting',
+      3: 'Disconnecting'
+    };
+    throw new Error(`Database is not connected. Current state: ${states[connectionState] || 'Unknown'}`);
+  }
+};
 
 // 로그인
 exports.login = async (req, res) => {
@@ -13,6 +29,26 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         message: 'Email and password are required'
+      });
+    }
+
+    // MongoDB 연결 상태 확인
+    try {
+      checkDatabaseConnection();
+    } catch (dbError) {
+      console.error('⚠️  데이터베이스 연결 확인 실패:', dbError.message);
+      return res.status(503).json({
+        message: 'Database connection error. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+      });
+    }
+
+    // JWT_SECRET 확인
+    if (!process.env.JWT_SECRET) {
+      console.error('⚠️  JWT_SECRET이 설정되지 않았습니다.');
+      return res.status(500).json({
+        message: 'Server configuration error. Please contact administrator.',
+        error: process.env.NODE_ENV === 'development' ? 'JWT_SECRET is not configured' : undefined
       });
     }
 
@@ -69,15 +105,37 @@ exports.login = async (req, res) => {
       user: userResponse
     });
   } catch (error) {
-    console.error('로그인 에러:', error);
+    console.error('='.repeat(50));
+    console.error('로그인 에러 발생:');
+    console.error('에러 타입:', error.name);
+    console.error('에러 메시지:', error.message);
     console.error('에러 스택:', error.stack);
+    console.error('='.repeat(50));
+    
+    // MongoDB 연결 에러
+    if (error.name === 'MongoServerSelectionError' || error.name === 'MongooseError') {
+      console.error('⚠️  MongoDB 연결 문제가 발생했습니다.');
+      return res.status(503).json({
+        message: 'Database connection error. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
     
     // JWT_SECRET이 없을 때의 에러 처리
-    if (error.message && error.message.includes('secret')) {
-      console.error('JWT_SECRET이 설정되지 않았습니다. .env 파일을 확인하세요.');
+    if (error.message && (error.message.includes('secret') || error.message.includes('JWT'))) {
+      console.error('⚠️  JWT_SECRET이 설정되지 않았습니다.');
       return res.status(500).json({
         message: 'Server configuration error. Please contact administrator.',
         error: process.env.NODE_ENV === 'development' ? 'JWT_SECRET is not configured' : undefined
+      });
+    }
+    
+    // bcrypt 에러
+    if (error.name === 'TypeError' && error.message.includes('bcrypt')) {
+      console.error('⚠️  비밀번호 검증 중 오류가 발생했습니다.');
+      return res.status(500).json({
+        message: 'Password verification error. Please try again.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
     
