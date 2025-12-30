@@ -108,8 +108,36 @@ app.use(passport.session());
 const connectDB = async () => {
   try {
     // MONGODB_ATLAS_URL을 우선 사용, 없을 경우 로컬 주소 사용
-    const mongoUri = process.env.MONGODB_ATLAS_URL || 'mongodb://localhost:27017/shopping-mall';
+    let mongoUri = process.env.MONGODB_ATLAS_URL || 'mongodb://localhost:27017/shopping-mall';
     const isAtlas = !!process.env.MONGODB_ATLAS_URL;
+    
+    // MongoDB Atlas URL에 데이터베이스 이름과 파라미터가 없으면 추가
+    if (isAtlas && mongoUri.includes('mongodb+srv://')) {
+      // 데이터베이스 이름이 없으면 추가
+      if (!mongoUri.match(/\/[^?@]+(\?|$|@)/) && !mongoUri.includes('/shopping-mall')) {
+        // @ 다음에 / 가 없으면 데이터베이스 이름 추가
+        if (mongoUri.includes('@')) {
+          const parts = mongoUri.split('@');
+          if (parts.length > 1 && !parts[1].includes('/')) {
+            mongoUri = parts[0] + '@' + parts[1].split('?')[0] + '/shopping-mall';
+            if (parts[1].includes('?')) {
+              mongoUri += '?' + parts[1].split('?')[1];
+            }
+          }
+        } else if (!mongoUri.includes('/')) {
+          mongoUri = mongoUri + '/shopping-mall';
+        }
+      }
+      
+      // 쿼리 파라미터 추가
+      if (!mongoUri.includes('retryWrites=true')) {
+        if (mongoUri.includes('?')) {
+          mongoUri = mongoUri + '&retryWrites=true&w=majority';
+        } else {
+          mongoUri = mongoUri + '?retryWrites=true&w=majority';
+        }
+      }
+    }
     
     console.log('='.repeat(50));
     console.log('MongoDB Connection Info:');
@@ -182,8 +210,26 @@ const connectDB = async () => {
   }
 };
 
+// MongoDB 연결 재시도 함수
+const connectDBWithRetry = async (retries = 3, delay = 5000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await connectDB();
+      return; // 연결 성공
+    } catch (error) {
+      console.error(`MongoDB 연결 시도 ${i + 1}/${retries} 실패`);
+      if (i < retries - 1) {
+        console.log(`${delay / 1000}초 후 재시도...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error('MongoDB 연결 재시도 모두 실패');
+      }
+    }
+  }
+};
+
 // Connect to MongoDB (비동기로 실행, 서버 시작을 막지 않음)
-connectDB().catch(err => {
+connectDBWithRetry().catch(err => {
   console.error('MongoDB 연결 중 예상치 못한 오류:', err);
 });
 
