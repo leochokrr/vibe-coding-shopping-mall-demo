@@ -140,7 +140,25 @@ const Home = () => {
       console.log(`총 ${allProducts.length}개의 상품을 불러왔습니다.`);
     } catch (err) {
       console.error('상품 데이터 가져오기 실패:', err);
-      setError('상품 데이터를 불러오는데 실패했습니다.');
+      let errorMessage = '상품 데이터를 불러오는데 실패했습니다.';
+      
+      if (err.response) {
+        // 서버가 응답했지만 에러 상태 코드
+        errorMessage += ` (${err.response.status}: ${err.response.statusText})`;
+        if (err.response.data?.message) {
+          errorMessage += ` - ${err.response.data.message}`;
+        }
+      } else if (err.request) {
+        // 요청은 보냈지만 응답을 받지 못함
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        errorMessage += `\n서버에 연결할 수 없습니다. (${apiUrl})`;
+        errorMessage += '\n서버가 실행 중인지 확인해주세요.';
+      } else {
+        // 요청 설정 중 에러
+        errorMessage += `\n${err.message}`;
+      }
+      
+      setError(errorMessage);
       } finally {
         setLoading(false);
       }
